@@ -31,14 +31,33 @@ class Model:
         """ Carica tutti i punti di interesse in un dizionario [id, PuntoInteresse]"""
         self.punti_interesse_map = PuntoInteresseDAO.get_punti_interesse()
 
-    def load_relazioni(self):
+    def load_relazioni(self, punti_interesse=None):
         """
             Interroga il database per ottenere tutte le relazioni fra escursioni e punti di interesse e salvarle nelle strutture dati
             Collega escursione <-> punti di interesse.
             --> Ogni Escursione ha un set di PuntoInteresse.
             --> Ogni PuntoInteresse ha un set di Escursioni.
         """
-        # TODO
+        # Recupero tutte le relazioni N:N tramite il DAO
+        relazioni = EscursioneDAO.get_escursioni_punti_interesse()
+
+        if relazioni is None:
+            return
+
+        for relazione in relazioni:
+            # Estraggo gli ID dalla relazione che sto considerando
+            id_escursione = relazione['id_escursione']
+            id_punto_interesse = relazione['id_punto_interesse']
+
+            # Recupero gli oggetti dai rispettivi dizionari tramite l'ID (chiave)
+            escursione = self.escursioni_map[id_escursione]
+            punto_interesse=self.punti_interesse_map[id_punto_interesse]
+
+            # Creo il collegamento tra l'escursione e il punto di interesse andando a popolare i set dei singoli oggetti
+            escursione.punti_interesse.add(punto_interesse)
+            punto_interesse.escursioni.add(escursione)
+
+
 
     def genera_pacchetto(self, id_parco: str, max_giorni: int = None, max_budget: float = None):
         """
